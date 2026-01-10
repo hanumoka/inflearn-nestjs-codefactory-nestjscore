@@ -1,0 +1,21 @@
+meta {
+  name: patch_post
+  type: http
+  seq: 1
+}
+
+patch {
+  url: http://localhost:3000/posts/1
+  body: formUrlEncoded
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:form-urlencoded {
+  title: 4444
+  content: 1111
+  author: 222
+}
