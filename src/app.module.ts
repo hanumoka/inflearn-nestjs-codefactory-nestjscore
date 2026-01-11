@@ -3,10 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PostModel } from './posts/entities/post.entity';
 
 @Module({
   imports: [
     PostsModule,
+    //forRoot 는 typeOrm 연결 설정을 한다.
     TypeOrmModule.forRoot({
       // 데이터베이스 타입
       type: 'postgres',
@@ -15,7 +17,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       username: 'postgres',
       password: 'postgres',
       database: 'nestjs_db',
-      entities: [],
+      entities: [PostModel],
       synchronize: true,
     }),
   ],

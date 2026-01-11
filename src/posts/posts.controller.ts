@@ -8,19 +8,19 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { type PostModel, PostsService } from './posts.service';
+import { PostsService } from './posts.service';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  getPosts(): PostModel[] {
+  getPosts() {
     return this.postsService.getAllPosts();
   } //getPosts
 
   @Get(':id')
-  getPost(@Param('id', ParseIntPipe) id: number): PostModel {
+  getPost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.getPostById(id);
   } //getPost
 
@@ -39,12 +39,12 @@ export class PostsController {
     @Body('title') title?: string,
     @Body('content') content?: string,
     @Body('author') author?: string,
-  ): PostModel {
+  ) {
     return this.postsService.updatePost(id, title, content, author);
   } //patchPost
 
   @Delete(':id')
-  deletePost(@Param('id', ParseIntPipe) id: number): PostModel {
+  deletePost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.deletePost(id);
   }
 } //PostsController

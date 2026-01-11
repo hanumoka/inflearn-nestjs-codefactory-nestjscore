@@ -1,77 +1,101 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { PostModel } from './entities/post.entity';
 
-export interface PostModel {
-  id: number;
-  author: string;
-  title: string;
-  content: string;
-  likeCount: number;
-  commentCount: number;
-}
+// export interface PostModel {
+//   id: number;
+//   author: string;
+//   title: string;
+//   content: string;
+//   likeCount: number;
+//   commentCount: number;
+// }
 
-let posts: PostModel[] = [
-  {
-    id: 1,
-    author: 'string1',
-    title: 'string1',
-    content: 'string',
-    likeCount: 1,
-    commentCount: 1,
-  },
-  {
-    id: 2,
-    author: 'string2',
-    title: 'string2',
-    content: 'string',
-    likeCount: 1,
-    commentCount: 1,
-  },
-  {
-    id: 3,
-    author: 'string3',
-    title: 'string3',
-    content: 'string',
-    likeCount: 1,
-    commentCount: 1,
-  },
-];
+// let posts: PostModel[] = [
+//   {
+//     id: 1,
+//     author: 'string1',
+//     title: 'string1',
+//     content: 'string',
+//     likeCount: 1,
+//     commentCount: 1,
+//   },
+//   {
+//     id: 2,
+//     author: 'string2',
+//     title: 'string2',
+//     content: 'string',
+//     likeCount: 1,
+//     commentCount: 1,
+//   },
+//   {
+//     id: 3,
+//     author: 'string3',
+//     title: 'string3',
+//     content: 'string',
+//     likeCount: 1,
+//     commentCount: 1,
+//   },
+// ];
 
 @Injectable()
 export class PostsService {
-  getAllPosts(): PostModel[] {
-    return posts;
+  constructor(
+    // NestJs에게 PostModel 엔티티용 Repository를 주입해줘 라고 요청
+    // TypeOrm이 PostModel 기반으로 스스로 Repository 인스턴스를 생성하여 주입한다.
+    @InjectRepository(PostModel)
+    private readonly postRepository: Repository<PostModel>,
+  ) {}
+
+  async getAllPosts() {
+    // Nestjs에서 Controller가 Promise를 반환하면 자동으로 await 처리를 해준다.
+    return this.postRepository.find();
   } //getAllPosts
 
-  getPostById(id: number): PostModel {
-    const post = posts.find((post) => post.id === id);
+  async getPostById(id: number) {
+    const post = await this.postRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
     if (!post) {
       throw new NotFoundException();
     } //if
+
     return post;
   } //getPost
 
-  createPost(author: string, title: string, content: string): PostModel {
-    const post: PostModel = {
-      id: posts[posts.length - 1].id + 1,
+  async createPost(author: string, title: string, content: string) {
+    // create(저장할 객체만 메모리에 생성) -> save(실제 저장)
+    // save의 기능
+    // 1. 만약에 데이터가 존재하지 않는다면 (id 기준) 새로 생성한다.
+    // 2. 만약에 데이터가 존재한다면(id 기준) update를 한다.
+    const post = this.postRepository.create({
       author,
       title,
       content,
       likeCount: 0,
       commentCount: 0,
-    };
+    });
 
-    // posts = [...posts, post];
-    posts.push(post);
-    return post;
+    const newPost = this.postRepository.save(post);
+
+    return newPost;
   } //createPost
 
-  updatePost(
+  async updatePost(
     id: number,
     title?: string,
     content?: string,
     author?: string,
-  ): PostModel {
-    const post = posts.find((item) => item.id === id);
+  ) {
+    const post = await this.postRepository.findOne({
+      where: {
+        id,
+      },
+    });
 
     if (!post) {
       throw new NotFoundException();
@@ -89,20 +113,23 @@ export class PostsService {
       post.author = author;
     } //if
 
-    posts = posts.map((prevPost) => (prevPost.id === id ? post : prevPost));
-
-    return post;
+    const newPost = await this.postRepository.save(post);
+    return newPost;
   } //updatePost
 
-  deletePost(id: number): PostModel {
-    const post = posts.find((post) => post.id === id);
+  async deletePost(id: number) {
+    const post = await this.postRepository.findOne({
+      where: {
+        id,
+      },
+    });
 
     if (!post) {
       throw new NotFoundException();
     } //if
 
-    posts = posts.filter((post) => post.id !== id);
+    await this.postRepository.delete(id);
 
     return post;
   }
-}
+} //PostsService
